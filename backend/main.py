@@ -1,7 +1,74 @@
-from fastapi import FastAPI
+import os
+from fastapi import Depends, FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import text
+from sqlalchemy.orm import Session
+
+from repositories.proposal_repository import create_proposal
+from schemas.proposal import ProposalRequest
+from services.ai_service import generate_proposal
+from db.database import get_db
+from core.auth import get_current_user
+from core.config import DATABASE_URL, SUPABASE_URL, SUPABASE_ANON_KEY
+
+if not DATABASE_URL:
+    raise ValueError("DATABASE_URL not set in environment variables")
+
+if not SUPABASE_URL or not SUPABASE_ANON_KEY:
+    raise ValueError("Supabase environment variables not set")
 
 app = FastAPI()
 
+# Enable CORS to allow frontend requests
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173", "http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 @app.get("/")
 def root():
-    return {"message": "Hello World"}
+    return {"message": "Hello from FastAPI!", "status": "ok"}
+
+@app.get("/proposals")
+def get_proposals(user=Depends(get_current_user), db: Session = Depends(get_db)):
+    """Get proposals for the authenticated user from the database"""
+    try:
+        # Example query to test database connection
+        # Adjust this based on your actual schema
+        result = db.execute(
+            text("SELECT 'Database connected successfully!' as message, :user_id as user_id"),
+            {"user_id": user}
+        )
+        data = result.fetchone()
+        
+        return {
+            "user": user,
+            "database_status": dict(data._mapping) if data else {},
+            "message": "Successfully authenticated with Supabase token"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+    
+@app.get("/generate")
+def generate_proposal_endpoint(
+    request: ProposalRequest,
+    user_id: str = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+
+    proposal_text = generate_proposal(request.job_description)
+
+    proposal = create_proposal(
+        db,
+        user_id,
+        request.job_description,
+        proposal_text
+    )
+
+    return {
+        "proposal_id": str(proposal.id),
+        "proposal": proposal_text
+    }
