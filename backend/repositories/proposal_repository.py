@@ -22,3 +22,11 @@ def create_proposal(db, user_id, job_id, proposal_text, timeline_estimate, quest
     db.refresh(proposal)
 
     return proposal
+
+def delete_proposal(db, proposal_id):
+    proposal = db.query(Proposal).filter(Proposal.id == proposal_id).first()
+    if proposal:
+        db.delete(proposal)
+        db.commit()
+        return True
+    return False

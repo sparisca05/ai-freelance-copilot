@@ -9,7 +9,7 @@ type DashboardProps = {
 }
 
 type GeneratedProposal = {
-	proposal_id: string
+	id: string
 	job_id: string
 	title: string
 	proposal_text: string
@@ -92,7 +92,7 @@ function Dashboard({ email, error, onSignOut, onOpenProfile }: DashboardProps) {
 			})
 
 			const proposal: GeneratedProposal = {
-				proposal_id: result.id,
+				id: result.id,
 				job_id: savedJob.job_id,
 				title: jobTitle,
 				proposal_text: result.proposal_text,
@@ -121,6 +121,15 @@ function Dashboard({ email, error, onSignOut, onOpenProfile }: DashboardProps) {
 		await navigator.clipboard.writeText(generatedProposal.proposal_text)
 		setCopied(true)
 		setTimeout(() => setCopied(false), 2000)
+	}
+
+	const handleDeleteProposal = async (proposal_id: string) => {
+		try {
+			await fetchWithAuth(`/proposal/${proposal_id}`, { method: 'DELETE' })
+			setProposalHistory(proposalHistory.filter(p => p.id !== proposal_id))
+		} catch (err) {
+			console.error('Failed to delete proposal:', err instanceof Error ? err.message : err)
+		}
 	}
 
 	const getDifficultyColor = (level: string) => {
@@ -560,17 +569,36 @@ function Dashboard({ email, error, onSignOut, onOpenProfile }: DashboardProps) {
 												{prop.title || 'Untitled Proposal'}
 											</p>
 										</div>
-										<span style={{
-											backgroundColor: '#e3f2fd',
-											color: '#1565c0',
-											borderRadius: '6px',
-											padding: '0.25rem 0.6rem',
-											fontSize: '0.75rem',
-											fontWeight: 600,
-											flexShrink: 0,
-										}}>
-											View
-										</span>
+										<div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
+											<span style={{
+												backgroundColor: '#e3f2fd',
+												color: '#1565c0',
+												borderRadius: '6px',
+												padding: '0.25rem 0.6rem',
+												fontSize: '0.75rem',
+												fontWeight: 600,
+												flexShrink: 0,
+											}}>
+												View
+											</span>
+											<button style={{
+												backgroundColor: '#fde3e3',
+												color: '#c01515',
+												borderRadius: '6px',
+												padding: '0.25rem 0.6rem',
+												fontSize: '0.75rem',
+												fontWeight: 600,
+												cursor: 'pointer',
+											}}
+												onClick={async (e) => {
+													e.stopPropagation()
+													if (!window.confirm('Are you sure you want to delete this proposal?')) return
+													await handleDeleteProposal(prop.id)
+												}}
+											>
+												Delete
+											</button>
+										</div>
 									</div>
 								))}
 							</div>

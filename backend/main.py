@@ -5,7 +5,7 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from repositories.job_repository import create_job, get_job, get_jobs_by_user
-from repositories.proposal_repository import create_proposal, get_proposals_for_user
+from repositories.proposal_repository import create_proposal, delete_proposal, get_proposals_for_user
 from repositories.profile_repository import get_profile, update_profile
 from schemas.job import JobRequest
 from schemas.proposal import ProposalRequest
@@ -116,6 +116,19 @@ def get_proposals(user=Depends(get_current_user), db: Session = Depends(get_db))
         return {
             "proposals": proposals
         }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
+@app.delete("/proposal/{proposal_id}")
+def delete_proposal_endpoint(proposal_id: str, user=Depends(get_current_user), db: Session = Depends(get_db)):
+    """Delete a proposal by ID"""
+    try:
+        if not user:
+            raise HTTPException(status_code=401, detail="Unauthorized")
+        success = delete_proposal(db, proposal_id)
+        if not success:
+            raise HTTPException(status_code=404, detail="Proposal not found")
+        return {"message": "Proposal deleted successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
