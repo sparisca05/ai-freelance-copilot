@@ -36,6 +36,21 @@ app.add_middleware(
 def root():
     return {"message": "Hello from FastAPI!", "status": "ok"}
 
+@app.get("/job/{job_id}")
+def get_job_endpoint(job_id: str, user_id: str = Depends(get_current_user), db: Session = Depends(get_db)):
+    """Get a specific job posting by ID for the authenticated user"""
+    job: JobRequest = get_job(db, job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    if str(job.user_id) != user_id:
+        print("Unauthorized access attempt detected")
+        raise HTTPException(status_code=403, detail="Not authorized to access this job")
+    return {
+        "id": str(job.id),
+        "title": job.title,
+        "description": job.description
+    }
+
 @app.get("/jobs")
 def get_jobs_endpoint(user_id: str = Depends(get_current_user), db: Session = Depends(get_db)):
     """Get all job postings for the authenticated user"""

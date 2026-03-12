@@ -24,10 +24,12 @@ type GeneratedProposal = {
 function Dashboard({ email, error, onSignOut, onOpenProfile }: DashboardProps) {
 	const [jobTitle, setJobTitle] = useState('')
 	const [jobDescription, setJobDescription] = useState('')
+	const [jobDetails, setJobDetails] = useState('')
 	const [isGenerating, setIsGenerating] = useState(false)
 	const [generatedProposal, setGeneratedProposal] = useState<GeneratedProposal | null>(null)
 	const [fetchError, setFetchError] = useState('')
 	const [proposalHistory, setProposalHistory] = useState<GeneratedProposal[]>([])
+	const [showJobDetails, setShowJobDetails] = useState(false)
 	const [showHistory, setShowHistory] = useState(false)
 	const [copied, setCopied] = useState(false)
 
@@ -55,6 +57,11 @@ function Dashboard({ email, error, onSignOut, onOpenProfile }: DashboardProps) {
 		}
 		loadHistory()
 	}, [window.location.href]) // Reload history when the component mounts or when the URL changes
+
+	const getJobDetails = async () => {
+		const job = await fetchWithAuth('/job/' + generatedProposal?.job_id)
+		setJobDetails(job.description)
+	}
 
 	const handleGenerateProposal = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault()
@@ -261,7 +268,7 @@ function Dashboard({ email, error, onSignOut, onOpenProfile }: DashboardProps) {
 					</section>
 
 					{/* Generated Proposal Result */}
-					{generatedProposal && (
+					{generatedProposal && showJobDetails === false && (
 						<section style={{
 							background: '#fff',
 							borderRadius: '14px',
@@ -275,6 +282,20 @@ function Dashboard({ email, error, onSignOut, onOpenProfile }: DashboardProps) {
 							<h2 style={{ margin: '0 0 1.25rem 0', fontSize: '1.35rem', textAlign: 'left' }}>
 								{generatedProposal.title}
 							</h2>
+							<button
+								onClick={() => [setShowJobDetails(true), getJobDetails()]}
+								style={{
+									marginBottom: '1.5rem',
+									borderRadius: '8px',
+									cursor: 'pointer',
+									fontSize: '0.85rem',
+									fontWeight: 500,
+									color: '#1565c0',
+									transition: 'all 0.2s',
+								}}
+							>
+								Show job details
+							</button>
 
 							{/* Metric Cards */}
 							<div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.75rem', marginBottom: '1.5rem' }}>
@@ -290,7 +311,7 @@ function Dashboard({ email, error, onSignOut, onOpenProfile }: DashboardProps) {
 										Match Score
 									</div>
 									<div style={{ fontSize: '1.5rem', fontWeight: 700, color: getMatchColor(generatedProposal.match_score).text, marginTop: '0.25rem' }}>
-										{generatedProposal.match_score}
+										{generatedProposal.match_score}{"%"}
 									</div>
 								</div>
 								{/* Difficulty */}
@@ -427,6 +448,39 @@ function Dashboard({ email, error, onSignOut, onOpenProfile }: DashboardProps) {
 									{copied ? '✓ Copied!' : '📋 Copy to Clipboard'}
 								</button>
 							</div>
+						</section>
+					)}
+
+					{generatedProposal && showJobDetails === true && (
+						<section style={{
+							background: '#fff',
+							borderRadius: '14px',
+							border: '1px solid #d6d6d6',
+							padding: '2rem',
+							boxShadow: '0 4px 16px -8px rgba(0,0,0,0.1)',
+							overflow: 'hidden',
+							minWidth: 0,
+						}}>
+							<h2 style={{ margin: '0 0 1.25rem 0', fontSize: '1.35rem', textAlign: 'left' }}>
+								Job Details for: <strong>{generatedProposal.title}</strong>
+							</h2>
+							<div style={{ background: '#f8f9ff', border: '1px solid #c5cae9', borderRadius: '10px', padding: '1.25rem', fontSize: '0.9rem', lineHeight: '1.7', textAlign: 'left', color: '#333' }}>
+								{jobDetails || 'Loading job details...'}
+							</div>
+							<button
+								onClick={() => setShowJobDetails(false)}
+								style={{
+									marginTop: '1.5rem',
+									borderRadius: '8px',
+									cursor: 'pointer',
+									fontSize: '0.85rem',
+									fontWeight: 500,
+									color: '#1565c0',
+									transition: 'all 0.2s',
+								}}
+							>
+								Hide job details
+							</button>
 						</section>
 					)}
 				</div>
