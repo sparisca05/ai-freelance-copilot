@@ -31,34 +31,34 @@ const handleGenerateProposal = async (e: React.FormEvent<HTMLFormElement>) => {
 	}
 
 	try {
-	setIsGenerating(true)
-	setFetchError('')
-	
-	const savedJob = await fetchWithAuth('/save_job', {
-		method: 'POST',
-		headers: {
-			'Content-Type': 'application/json',
-		},
-		body: JSON.stringify({ title: jobTitle, description: jobDescription }),
-	})
+		setIsGenerating(true)
+		setFetchError('')
+		
+		const savedJob = await fetchWithAuth('/save_job', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify({ title: jobTitle, description: jobDescription }),
+		})
 
-	const result = await fetchWithAuth('/generate', {
-		method: 'POST',
-		headers: {
-			'Content-Type': 'application/json',
-		},
-		body: JSON.stringify({ job_id: savedJob.job_id }),
-	})
+		const result = await fetchWithAuth('/generate', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify({ job_id: savedJob.job_id }),
+		})
 
-	const proposal: GeneratedProposal = {
-		proposal_id: result.id,
-		proposal: result.proposal_text,
-	}
-	
-	setGeneratedProposal(proposal)
-	setProposalHistory([proposal, ...proposalHistory])
-	setJobDescription('')
-	console.log('Proposal generated successfully:', proposal)
+		const proposal: GeneratedProposal = {
+			proposal_id: result.id,
+			proposal: result.proposal_text,
+		}
+		
+		setGeneratedProposal(proposal)
+		setProposalHistory([proposal, ...proposalHistory])
+		setJobDescription('')
+		console.log('Proposal generated successfully:', proposal)
 	} catch (err) {
 		const errorMsg = err instanceof Error ? err.message : 'Failed to generate proposal'
 		console.error('Error generating proposal:', errorMsg)

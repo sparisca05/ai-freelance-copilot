@@ -6,8 +6,10 @@ from sqlalchemy.orm import Session
 
 from repositories.job_repository import create_job, get_job
 from repositories.proposal_repository import create_proposal
+from repositories.profile_repository import update_profile
 from schemas.job import JobRequest
 from schemas.proposal import ProposalRequest
+from schemas.profile import ProfileRequest
 from services.ai_service import generate_proposal
 from db.database import get_db
 from core.auth import get_current_user
@@ -92,6 +94,20 @@ def get_proposals(user=Depends(get_current_user), db: Session = Depends(get_db))
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
     
 @app.post("/update_profile")
-def update_profile():
-    """Update user profile endpoint (to be implemented)"""
+def update_profile(
+    request=ProfileRequest,
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Update user profile information"""
+    update_profile(
+        db,
+        user,
+        request.full_name,
+        request.headline,
+        request.years_experience,
+        request.primary_role,
+        request.skills,
+        request.bio
+    )
     return {"message": "Profile updated successfully"}

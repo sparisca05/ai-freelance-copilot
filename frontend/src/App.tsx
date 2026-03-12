@@ -4,13 +4,14 @@ import { supabase } from '../supabaseClient'
 import AuthForm from './components/AuthForm'
 import Dashboard from './components/Dashboard'
 import Profile, { type UserProfile } from './components/Profile'
+import { fetchWithAuth } from './api'
 import './App.css'
 
 const emptyProfile: UserProfile = {
-  fullName: '',
+  full_name: '',
   headline: '',
-  yearsExperience: '',
-  primaryRole: '',
+  years_experience: '',
+  primary_role: '',
   skills: [],
   bio: '',
 }
@@ -126,15 +127,28 @@ function App() {
     }
   }, [session?.user?.id])
 
-  const handleSaveProfile = (nextProfile: UserProfile) => {
+  const handleSaveProfile = async (nextProfile: UserProfile) => {
     setProfile(nextProfile)
 
     if (!session?.user?.id) {
       return
     }
 
-    const storageKey = `profile_${session.user.id}`
-    window.localStorage.setItem(storageKey, JSON.stringify(nextProfile))
+    try{
+      console.log('Saving profile to backend:', nextProfile)
+      await fetchWithAuth(`/update_profile`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(nextProfile),
+      })
+
+      const storageKey = `profile_${session.user.id}`
+      window.localStorage.setItem(storageKey, JSON.stringify(nextProfile))
+    } catch (err) {
+      console.error('Failed to save profile:', err instanceof Error ? err.message : err)
+    }
   }
 
   if (isLoading) {

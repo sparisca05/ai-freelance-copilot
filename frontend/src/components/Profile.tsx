@@ -1,10 +1,10 @@
 import { useState } from 'react'
 
 export type UserProfile = {
-  fullName: string
+  full_name: string
   headline: string
-  yearsExperience: string
-  primaryRole: string
+  years_experience: string
+  primary_role: string
   skills: string[]
   bio: string
 }
@@ -118,12 +118,12 @@ function Profile({ email, profile, onSaveProfile, onGoToDashboard, onSignOut }: 
             <h2 style={{ margin: 0, textAlign: 'left', fontSize: '1.2rem' }}>Personal Information</h2>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '0.75rem' }}>
               <div>
-                <label htmlFor="fullName">Full Name</label>
+                <label htmlFor="full_name">Full Name</label>
                 <input
-                  id="fullName"
+                  id="full_name"
                   type="text"
-                  value={formData.fullName}
-                  onChange={(event) => updateField('fullName', event.target.value)}
+                  value={formData.full_name}
+                  onChange={(event) => updateField('full_name', event.target.value)}
                   disabled={!isEditing}
                   placeholder="Your full name"
                 />
@@ -146,23 +146,23 @@ function Profile({ email, profile, onSaveProfile, onGoToDashboard, onSignOut }: 
                 />
               </div>
               <div>
-                <label htmlFor="primaryRole">Primary Role</label>
+                <label htmlFor="primary_role">Primary Role</label>
                 <input
-                  id="primaryRole"
+                  id="primary_role"
                   type="text"
-                  value={formData.primaryRole}
-                  onChange={(event) => updateField('primaryRole', event.target.value)}
+                  value={formData.primary_role}
+                  onChange={(event) => updateField('primary_role', event.target.value)}
                   disabled={!isEditing}
                   placeholder="Frontend Engineer"
                 />
               </div>
               <div>
-                <label htmlFor="yearsExperience">Years of Experience</label>
+                <label htmlFor="years_experience">Years of Experience</label>
                 <input
-                  id="yearsExperience"
+                  id="years_experience"
                   type="text"
-                  value={formData.yearsExperience}
-                  onChange={(event) => updateField('yearsExperience', event.target.value)}
+                  value={formData.years_experience}
+                  onChange={(event) => updateField('years_experience', event.target.value)}
                   disabled={!isEditing}
                   placeholder="5"
                 />
