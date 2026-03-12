@@ -10,23 +10,20 @@ from repositories.profile_repository import get_profile, update_profile
 from schemas.job import JobRequest
 from schemas.proposal import ProposalRequest
 from schemas.profile import ProfileRequest
-from services.ai_service import generate_proposal
+from services.ai_service import check_rate_limit, generate_proposal
 from db.database import get_db
 from core.auth import get_current_user
-from core.config import DATABASE_URL, SUPABASE_URL, SUPABASE_ANON_KEY
+from core.config import DATABASE_URL, SUPABASE_URL, SUPABASE_ANON_KEY, FRONT_URL
 
-if not DATABASE_URL:
-    raise ValueError("DATABASE_URL not set in environment variables")
-
-if not SUPABASE_URL or not SUPABASE_ANON_KEY:
-    raise ValueError("Supabase environment variables not set")
+if not DATABASE_URL or not SUPABASE_URL or not SUPABASE_ANON_KEY or not FRONT_URL:
+    raise ValueError("One or more required environment variables not set")
 
 app = FastAPI()
 
 # Enable CORS to allow frontend requests
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000"],
+    allow_origins=FRONT_URL,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -77,6 +74,8 @@ def generate_proposal_endpoint(
     user_id: str = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    check_rate_limit(user_id)
+
     user_profile = get_profile(db, user_id)
     job = get_job(db, request.job_id)
 
@@ -107,6 +106,7 @@ def generate_proposal_endpoint(
         "key_skills": response['job_analysis']['key_skills'],
         "estimated_budget_range": response['job_analysis']['estimated_budget_range']
     }
+
 @app.get("/proposals")
 def get_proposals(user=Depends(get_current_user), db: Session = Depends(get_db)):
     """Get proposals for the authenticated user from the database"""

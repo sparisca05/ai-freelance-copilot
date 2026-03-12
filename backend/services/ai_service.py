@@ -1,3 +1,6 @@
+from http.client import HTTPException
+from time import time
+
 from openai import OpenAI
 import json
 import os
@@ -72,3 +75,28 @@ def generate_proposal(user_profile: Profile, job_description: str):
         ]
     )
     return json.loads(response.choices[0].message.content)
+
+# Simple in-memory rate limiter
+user_requests = {}
+
+MAX_REQUESTS = 10
+WINDOW_SECONDS = 60
+
+def check_rate_limit(user_id: str):
+    now = time()
+
+    if user_id not in user_requests:
+        user_requests[user_id] = []
+
+    user_requests[user_id] = [
+        t for t in user_requests[user_id]
+        if now - t < WINDOW_SECONDS
+    ]
+
+    if len(user_requests[user_id]) >= MAX_REQUESTS:
+        raise HTTPException(
+            status_code=429,
+            detail="Rate limit exceeded. Try again later."
+        )
+
+    user_requests[user_id].append(now)
