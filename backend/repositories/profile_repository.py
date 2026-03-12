@@ -5,17 +5,19 @@ def get_profile(db, user_id):
 
 def update_profile(db, user_id, full_name, headline, years_experience, primary_role, skills, bio):
 
-    profile = Profile(
-        id=user_id,
-        full_name=full_name,
-        headline=headline,
-        years_experience=years_experience,
-        primary_role=primary_role,
-        skills=skills,
-        bio=bio
-    )
+    profile = db.query(Profile).filter(Profile.id == user_id).first()
 
-    db.add(profile)
+    if profile is None:
+        profile = Profile(id=user_id)
+        db.add(profile)
+
+    profile.full_name = full_name
+    profile.headline = headline
+    profile.years_experience = years_experience
+    profile.primary_role = primary_role
+    profile.skills = skills
+    profile.bio = bio
+
     db.commit()
     db.refresh(profile)
 

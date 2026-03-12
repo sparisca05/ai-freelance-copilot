@@ -94,12 +94,13 @@ def get_proposals(user=Depends(get_current_user), db: Session = Depends(get_db))
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
     
 @app.post("/update_profile")
-def update_profile(
-    request=ProfileRequest,
-    user=Depends(get_current_user),
+def update_profile_endpoint(
+    request: ProfileRequest,
+    user: str = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """Update user profile information"""
+    print(f"Received profile update request for user {user} with data: {request}")
     update_profile(
         db,
         user,

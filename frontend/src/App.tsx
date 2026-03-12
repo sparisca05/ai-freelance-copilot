@@ -25,7 +25,7 @@ function App() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
-  const [activeView, setActiveView] = useState<'dashboard' | 'profile'>('profile')
+  const [activeView, setActiveView] = useState<'dashboard' | 'profile'>('dashboard')
   const [profile, setProfile] = useState<UserProfile>(emptyProfile)
 
   useEffect(() => {
@@ -106,27 +106,6 @@ function App() {
     setProfile(emptyProfile)
   }
 
-  useEffect(() => {
-    if (!session?.user?.id) {
-      return
-    }
-
-    const storageKey = `profile_${session.user.id}`
-    const persisted = window.localStorage.getItem(storageKey)
-
-    if (!persisted) {
-      setProfile(emptyProfile)
-      return
-    }
-
-    try {
-      const parsed = JSON.parse(persisted) as UserProfile
-      setProfile({ ...emptyProfile, ...parsed })
-    } catch {
-      setProfile(emptyProfile)
-    }
-  }, [session?.user?.id])
-
   const handleSaveProfile = async (nextProfile: UserProfile) => {
     setProfile(nextProfile)
 
@@ -150,6 +129,27 @@ function App() {
       console.error('Failed to save profile:', err instanceof Error ? err.message : err)
     }
   }
+
+  useEffect(() => {
+    if (!session?.user?.id) {
+      return
+    }
+
+    const storageKey = `profile_${session.user.id}`
+    const persisted = window.localStorage.getItem(storageKey)
+
+    if (!persisted) {
+      setProfile(emptyProfile)
+      return
+    }
+
+    try {
+      const parsed = JSON.parse(persisted) as UserProfile
+      setProfile({ ...emptyProfile, ...parsed })
+    } catch {
+      setProfile(emptyProfile)
+    }
+  }, [session?.user?.id])
 
   if (isLoading) {
     return (

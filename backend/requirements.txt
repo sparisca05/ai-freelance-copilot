@@ -7,3 +7,4 @@ asyncpg
 python-jose
 requests
 cryptography
+openai
