@@ -118,7 +118,29 @@ def get_proposals(user=Depends(get_current_user), db: Session = Depends(get_db))
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
-    
+
+@app.get("/profile")
+def get_profile_endpoint(user=Depends(get_current_user), db: Session = Depends(get_db)):
+    """Get user profile information"""
+    profile = get_profile(db, user)
+    if not profile:
+        return {
+            "full_name": "",
+            "headline": "",
+            "years_experience": "",
+            "primary_role": "",
+            "skills": [],
+            "bio": ""
+        }
+    return {
+        "full_name": profile.full_name or "",
+        "headline": profile.headline or "",
+        "years_experience": profile.years_experience or "",
+        "primary_role": profile.primary_role or "",
+        "skills": profile.skills or [],
+        "bio": profile.bio or ""
+    }
+
 @app.post("/update_profile")
 def update_profile_endpoint(
     request: ProfileRequest,

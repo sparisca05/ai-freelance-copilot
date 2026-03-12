@@ -29,12 +29,14 @@ function Dashboard({ email, error, onSignOut, onOpenProfile }: DashboardProps) {
 	const [generatedProposal, setGeneratedProposal] = useState<GeneratedProposal | null>(null)
 	const [fetchError, setFetchError] = useState('')
 	const [proposalHistory, setProposalHistory] = useState<GeneratedProposal[]>([])
+	const [isHistoryLoading, setIsHistoryLoading] = useState(true)
 	const [showJobDetails, setShowJobDetails] = useState(false)
 	const [showHistory, setShowHistory] = useState(false)
 	const [copied, setCopied] = useState(false)
 
 	useEffect(() => {
 		const loadHistory = async () => {
+			setIsHistoryLoading(true)
 			console.log('Loading proposal history...')
 			try {
 				const history = await fetchWithAuth('/proposals')
@@ -53,10 +55,12 @@ function Dashboard({ email, error, onSignOut, onOpenProfile }: DashboardProps) {
 				setProposalHistory(historyWithTitles)
 			} catch (err) {
 				console.error('Failed to load proposal history:', err)
+			} finally {
+				setIsHistoryLoading(false)
 			}
 		}
 		loadHistory()
-	}, [window.location.href]) // Reload history when the component mounts or when the URL changes
+	}, [])
 
 	const getJobDetails = async () => {
 		const job = await fetchWithAuth('/job/' + generatedProposal?.job_id)
@@ -486,7 +490,18 @@ function Dashboard({ email, error, onSignOut, onOpenProfile }: DashboardProps) {
 				</div>
 
 				{/* History */}
-				{proposalHistory.length > 0 && (
+				{isHistoryLoading && (
+					<section style={{
+						background: '#fff',
+						borderRadius: '14px',
+						border: '1px solid #d6d6d6',
+						padding: '1.5rem 2rem',
+						boxShadow: '0 4px 16px -8px rgba(0,0,0,0.1)',
+					}}>
+						<p style={{ margin: 0, color: '#666', textAlign: 'left' }}>Loading proposal history...</p>
+					</section>
+				)}
+				{!isHistoryLoading && proposalHistory.length > 0 && (
 					<section style={{
 						background: '#fff',
 						borderRadius: '14px',

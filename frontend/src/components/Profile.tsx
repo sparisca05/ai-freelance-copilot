@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 export type UserProfile = {
   full_name: string
@@ -12,16 +12,21 @@ export type UserProfile = {
 type ProfileProps = {
   email: string | null | undefined
   profile: UserProfile
+  isProfileLoading: boolean
   onSaveProfile: (nextProfile: UserProfile) => void
   onGoToDashboard: () => void
   onSignOut: () => void
 }
 
-function Profile({ email, profile, onSaveProfile, onGoToDashboard, onSignOut }: ProfileProps) {
+function Profile({ email, profile, isProfileLoading, onSaveProfile, onGoToDashboard, onSignOut }: ProfileProps) {
   const [formData, setFormData] = useState<UserProfile>(profile)
   const [isEditing, setIsEditing] = useState(false)
   const [message, setMessage] = useState('')
   const [newSkillInput, setNewSkillInput] = useState('')
+
+  useEffect(() => {
+    setFormData(profile)
+  }, [profile])
 
   const updateField = (field: keyof UserProfile, value: string) => {
     setFormData((current) => ({
@@ -111,6 +116,7 @@ function Profile({ email, profile, onSaveProfile, onGoToDashboard, onSignOut }: 
           </div>
         </header>
 
+        {isProfileLoading ? <p className="subtle">Loading profile information...</p> : null}
         {message ? <p className="status success">{message}</p> : null}
 
         <form onSubmit={handleSubmit} className="auth-form" style={{ gap: '1rem' }}>
@@ -124,10 +130,10 @@ function Profile({ email, profile, onSaveProfile, onGoToDashboard, onSignOut }: 
                   type="text"
                   value={formData.full_name}
                   onChange={(event) => updateField('full_name', event.target.value)}
-                  disabled={!isEditing}
+                  disabled={!isEditing || isProfileLoading}
                   placeholder="Your full name"
                   style={{
-                    cursor: isEditing ? 'text' : 'not-allowed',
+                    cursor: isEditing && !isProfileLoading ? 'text' : 'not-allowed',
                   }}
                 />
               </div>
@@ -144,10 +150,10 @@ function Profile({ email, profile, onSaveProfile, onGoToDashboard, onSignOut }: 
                   type="text"
                   value={formData.headline}
                   onChange={(event) => updateField('headline', event.target.value)}
-                  disabled={!isEditing}
+                  disabled={!isEditing || isProfileLoading}
                   placeholder="Senior Full-Stack Developer"
                   style={{
-                    cursor: isEditing ? 'text' : 'not-allowed',
+                    cursor: isEditing && !isProfileLoading ? 'text' : 'not-allowed',
                   }}
                 />
               </div>
@@ -158,10 +164,10 @@ function Profile({ email, profile, onSaveProfile, onGoToDashboard, onSignOut }: 
                   type="text"
                   value={formData.primary_role}
                   onChange={(event) => updateField('primary_role', event.target.value)}
-                  disabled={!isEditing}
+                  disabled={!isEditing || isProfileLoading}
                   placeholder="Frontend Engineer"
                   style={{
-                    cursor: isEditing ? 'text' : 'not-allowed',
+                    cursor: isEditing && !isProfileLoading ? 'text' : 'not-allowed',
                   }}
                 />
               </div>
@@ -172,10 +178,10 @@ function Profile({ email, profile, onSaveProfile, onGoToDashboard, onSignOut }: 
                   type="text"
                   value={formData.years_experience}
                   onChange={(event) => updateField('years_experience', event.target.value)}
-                  disabled={!isEditing}
+                  disabled={!isEditing || isProfileLoading}
                   placeholder="5"
                   style={{
-                    cursor: isEditing ? 'text' : 'not-allowed',
+                    cursor: isEditing && !isProfileLoading ? 'text' : 'not-allowed',
                   }}
                 />
               </div>
@@ -188,7 +194,7 @@ function Profile({ email, profile, onSaveProfile, onGoToDashboard, onSignOut }: 
                     value={newSkillInput}
                     onChange={(event) => setNewSkillInput(event.target.value)}
                     onKeyDown={handleKeyDownSkillInput}
-                    disabled={!isEditing}
+                    disabled={!isEditing || isProfileLoading}
                     placeholder="Type a skill and press Enter"
                     style={{
                       flex: 1,
@@ -197,20 +203,20 @@ function Profile({ email, profile, onSaveProfile, onGoToDashboard, onSignOut }: 
                       padding: '0.75rem',
                       fontSize: '1rem',
                       fontFamily: 'inherit',
-                      cursor: isEditing ? 'text' : 'not-allowed',
+                      cursor: isEditing && !isProfileLoading ? 'text' : 'not-allowed',
                     }}
                   />
                   <button
                     type="button"
                     onClick={handleAddSkill}
-                    disabled={!isEditing || !newSkillInput.trim()}
+                    disabled={!isEditing || isProfileLoading || !newSkillInput.trim()}
                     style={{
                       padding: '0.75rem 1rem',
-                      backgroundColor: isEditing && newSkillInput.trim() ? '#1f5eff' : '#ccc',
+                      backgroundColor: isEditing && !isProfileLoading && newSkillInput.trim() ? '#1f5eff' : '#ccc',
                       color: '#fff',
                       border: 'none',
                       borderRadius: '8px',
-                      cursor: isEditing && newSkillInput.trim() ? 'pointer' : 'not-allowed',
+                      cursor: isEditing && !isProfileLoading && newSkillInput.trim() ? 'pointer' : 'not-allowed',
                       fontSize: '0.9rem',
                       fontWeight: '600',
                     }}
@@ -262,7 +268,7 @@ function Profile({ email, profile, onSaveProfile, onGoToDashboard, onSignOut }: 
                 id="bio"
                 value={formData.bio}
                 onChange={(event) => updateField('bio', event.target.value)}
-                disabled={!isEditing}
+                disabled={!isEditing || isProfileLoading}
                 rows={5}
                 placeholder="Short summary of your experience and the value you bring to clients."
                 style={{
@@ -273,7 +279,7 @@ function Profile({ email, profile, onSaveProfile, onGoToDashboard, onSignOut }: 
                   fontFamily: 'inherit',
                   resize: 'vertical',
                   width: '100%',
-                  cursor: isEditing ? 'text' : 'not-allowed',
+                  cursor: isEditing && !isProfileLoading ? 'text' : 'not-allowed',
                 }}
               />
             </div>
@@ -285,6 +291,7 @@ function Profile({ email, profile, onSaveProfile, onGoToDashboard, onSignOut }: 
                 type="button"
                 className="button"
                 onClick={handleEditToggle}
+                disabled={isProfileLoading}
                 style={{ width: 'auto', marginTop: 0 }}
               >
                 Edit Profile

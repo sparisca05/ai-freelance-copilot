@@ -27,6 +27,7 @@ function App() {
   const [error, setError] = useState('')
   const [activeView, setActiveView] = useState<'dashboard' | 'profile'>('dashboard')
   const [profile, setProfile] = useState<UserProfile>(emptyProfile)
+  const [isProfileLoading, setIsProfileLoading] = useState(false)
 
   useEffect(() => {
     let isMounted = true
@@ -130,23 +131,63 @@ function App() {
   }
 
   useEffect(() => {
-    if (!session?.user?.id) {
-      return
+    let isMounted = true
+
+    const loadProfile = async () => {
+      if (!session?.user?.id) {
+        if (isMounted) {
+          setProfile(emptyProfile)
+          setIsProfileLoading(false)
+        }
+        return
+      }
+
+      if (isMounted) {
+        setIsProfileLoading(true)
+      }
+
+      try {
+        const data = (await fetchWithAuth('/profile')) as Partial<UserProfile> | null
+        const normalized = { ...emptyProfile, ...(data ?? {}) }
+
+        if (isMounted) {
+          setProfile(normalized)
+        }
+
+        const storageKey = `profile_${session.user.id}`
+        window.localStorage.setItem(storageKey, JSON.stringify(normalized))
+      } catch {
+        const storageKey = `profile_${session.user.id}`
+        const persisted = window.localStorage.getItem(storageKey)
+
+        if (!persisted) {
+          if (isMounted) {
+            setProfile(emptyProfile)
+          }
+          return
+        }
+
+        try {
+          const parsed = JSON.parse(persisted) as UserProfile
+          if (isMounted) {
+            setProfile({ ...emptyProfile, ...parsed })
+          }
+        } catch {
+          if (isMounted) {
+            setProfile(emptyProfile)
+          }
+        }
+      } finally {
+        if (isMounted) {
+          setIsProfileLoading(false)
+        }
+      }
     }
 
-    const storageKey = `profile_${session.user.id}`
-    const persisted = window.localStorage.getItem(storageKey)
+    loadProfile()
 
-    if (!persisted) {
-      setProfile(emptyProfile)
-      return
-    }
-
-    try {
-      const parsed = JSON.parse(persisted) as UserProfile
-      setProfile({ ...emptyProfile, ...parsed })
-    } catch {
-      setProfile(emptyProfile)
+    return () => {
+      isMounted = false
     }
   }, [session?.user?.id])
 
@@ -167,6 +208,7 @@ function App() {
         <Profile
           email={session.user.email}
           profile={profile}
+          isProfileLoading={isProfileLoading}
           onSaveProfile={handleSaveProfile}
           onGoToDashboard={() => setActiveView('dashboard')}
           onSignOut={handleSignOut}
