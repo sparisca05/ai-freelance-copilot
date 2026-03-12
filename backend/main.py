@@ -4,7 +4,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
+from repositories.job_repository import create_job, get_job
 from repositories.proposal_repository import create_proposal
+from schemas.job import JobRequest
 from schemas.proposal import ProposalRequest
 from services.ai_service import generate_proposal
 from db.database import get_db
@@ -32,6 +34,43 @@ app.add_middleware(
 def root():
     return {"message": "Hello from FastAPI!", "status": "ok"}
 
+@app.post("/save_job")
+def save_job(
+    request: JobRequest,
+    user_id: str = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Save a new job posting for the authenticated user"""
+    
+    job = create_job(db, user_id, request.title, request.description)
+    return {
+        "job_id": str(job.id),
+        "message": "Job saved successfully"
+    }
+    
+@app.post("/generate")
+def generate_proposal_endpoint(
+    request: ProposalRequest,
+    user_id: str = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    job_description = get_job(db, request.job_id).description
+
+    response = generate_proposal(job_description)
+
+    proposal = create_proposal(
+        db,
+        user_id,
+        request.job_id,
+        response['proposal_text'],
+        response['timeline_estimate'],
+        response['questions']
+    )
+
+    return {
+        "id": str(proposal.id),
+        "proposal_text": response['proposal_text']
+    }
 @app.get("/proposals")
 def get_proposals(user=Depends(get_current_user), db: Session = Depends(get_db)):
     """Get proposals for the authenticated user from the database"""
@@ -52,23 +91,7 @@ def get_proposals(user=Depends(get_current_user), db: Session = Depends(get_db))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
     
-@app.get("/generate")
-def generate_proposal_endpoint(
-    request: ProposalRequest,
-    user_id: str = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-
-    proposal_text = generate_proposal(request.job_description)
-
-    proposal = create_proposal(
-        db,
-        user_id,
-        request.job_description,
-        proposal_text
-    )
-
-    return {
-        "proposal_id": str(proposal.id),
-        "proposal": proposal_text
-    }
+@app.post("/update_profile")
+def update_profile():
+    """Update user profile endpoint (to be implemented)"""
+    return {"message": "Profile updated successfully"}

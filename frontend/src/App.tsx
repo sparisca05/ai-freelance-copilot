@@ -3,7 +3,17 @@ import type { Session } from '@supabase/supabase-js'
 import { supabase } from '../supabaseClient'
 import AuthForm from './components/AuthForm'
 import Dashboard from './components/Dashboard'
+import Profile, { type UserProfile } from './components/Profile'
 import './App.css'
+
+const emptyProfile: UserProfile = {
+  fullName: '',
+  headline: '',
+  yearsExperience: '',
+  primaryRole: '',
+  skills: [],
+  bio: '',
+}
 
 function App() {
   const [mode, setMode] = useState<'login' | 'register'>('login')
@@ -14,6 +24,8 @@ function App() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
+  const [activeView, setActiveView] = useState<'dashboard' | 'profile'>('profile')
+  const [profile, setProfile] = useState<UserProfile>(emptyProfile)
 
   useEffect(() => {
     let isMounted = true
@@ -41,6 +53,7 @@ function App() {
       setSession(currentSession)
       setError('')
       setMessage('')
+      setActiveView('dashboard')
     })
 
     return () => {
@@ -88,6 +101,40 @@ function App() {
     setEmail('')
     setPassword('')
     setMode('login')
+    setActiveView('dashboard')
+    setProfile(emptyProfile)
+  }
+
+  useEffect(() => {
+    if (!session?.user?.id) {
+      return
+    }
+
+    const storageKey = `profile_${session.user.id}`
+    const persisted = window.localStorage.getItem(storageKey)
+
+    if (!persisted) {
+      setProfile(emptyProfile)
+      return
+    }
+
+    try {
+      const parsed = JSON.parse(persisted) as UserProfile
+      setProfile({ ...emptyProfile, ...parsed })
+    } catch {
+      setProfile(emptyProfile)
+    }
+  }, [session?.user?.id])
+
+  const handleSaveProfile = (nextProfile: UserProfile) => {
+    setProfile(nextProfile)
+
+    if (!session?.user?.id) {
+      return
+    }
+
+    const storageKey = `profile_${session.user.id}`
+    window.localStorage.setItem(storageKey, JSON.stringify(nextProfile))
   }
 
   if (isLoading) {
@@ -102,7 +149,26 @@ function App() {
   }
 
   if (session) {
-    return <Dashboard email={session.user.email} error={error} onSignOut={handleSignOut} />
+    if (activeView === 'profile') {
+      return (
+        <Profile
+          email={session.user.email}
+          profile={profile}
+          onSaveProfile={handleSaveProfile}
+          onGoToDashboard={() => setActiveView('dashboard')}
+          onSignOut={handleSignOut}
+        />
+      )
+    }
+
+    return (
+      <Dashboard
+        email={session.user.email}
+        error={error}
+        onSignOut={handleSignOut}
+        onOpenProfile={() => setActiveView('profile')}
+      />
+    )
   }
 
   return (
