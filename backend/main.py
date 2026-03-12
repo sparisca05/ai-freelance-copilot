@@ -4,9 +4,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-from repositories.job_repository import create_job, get_job
-from repositories.proposal_repository import create_proposal
-from repositories.profile_repository import update_profile
+from repositories.job_repository import create_job, get_job, get_jobs_by_user
+from repositories.proposal_repository import create_proposal, get_proposals_for_user
+from repositories.profile_repository import get_profile, update_profile
 from schemas.job import JobRequest
 from schemas.proposal import ProposalRequest
 from schemas.profile import ProfileRequest
@@ -36,6 +36,12 @@ app.add_middleware(
 def root():
     return {"message": "Hello from FastAPI!", "status": "ok"}
 
+@app.get("/jobs")
+def get_jobs_endpoint(user_id: str = Depends(get_current_user), db: Session = Depends(get_db)):
+    """Get all job postings for the authenticated user"""
+    jobs = get_jobs_by_user(db, user_id)
+    return {"jobs": jobs}
+
 @app.post("/save_job")
 def save_job(
     request: JobRequest,
@@ -56,9 +62,10 @@ def generate_proposal_endpoint(
     user_id: str = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    job_description = get_job(db, request.job_id).description
+    user_profile = get_profile(db, user_id)
+    job = get_job(db, request.job_id)
 
-    response = generate_proposal(job_description)
+    response = generate_proposal(user_profile, job.description)
 
     proposal = create_proposal(
         db,
@@ -66,29 +73,33 @@ def generate_proposal_endpoint(
         request.job_id,
         response['proposal_text'],
         response['timeline_estimate'],
-        response['questions']
+        response['questions'],
+        response['job_analysis']['difficulty_level'],
+        response['job_analysis']['match_score'],
+        response['job_analysis']['key_skills'],
+        response['job_analysis']['estimated_budget_range']
     )
 
     return {
         "id": str(proposal.id),
-        "proposal_text": response['proposal_text']
+        "job_id": str(proposal.job_id),
+        "title": job.title,
+        "proposal_text": response['proposal_text'],
+        "timeline_estimate": response['timeline_estimate'],
+        "questions": response['questions'],
+        "difficulty_level": response['job_analysis']['difficulty_level'],
+        "match_score": response['job_analysis']['match_score'],
+        "key_skills": response['job_analysis']['key_skills'],
+        "estimated_budget_range": response['job_analysis']['estimated_budget_range']
     }
 @app.get("/proposals")
 def get_proposals(user=Depends(get_current_user), db: Session = Depends(get_db)):
     """Get proposals for the authenticated user from the database"""
     try:
-        # Example query to test database connection
-        # Adjust this based on your actual schema
-        result = db.execute(
-            text("SELECT 'Database connected successfully!' as message, :user_id as user_id"),
-            {"user_id": user}
-        )
-        data = result.fetchone()
+        proposals = get_proposals_for_user(db, user)
         
         return {
-            "user": user,
-            "database_status": dict(data._mapping) if data else {},
-            "message": "Successfully authenticated with Supabase token"
+            "proposals": proposals
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
@@ -100,7 +111,6 @@ def update_profile_endpoint(
     db: Session = Depends(get_db)
 ):
     """Update user profile information"""
-    print(f"Received profile update request for user {user} with data: {request}")
     update_profile(
         db,
         user,

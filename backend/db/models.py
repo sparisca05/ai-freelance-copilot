@@ -32,6 +32,14 @@ class Proposal(Base):
 
     questions = Column(JSONB)
 
+    difficulty_level = Column(Text)
+
+    match_score = Column(Text)
+
+    key_skills = Column(JSONB)
+
+    estimated_budget_range = Column(Text)
+    
 class Profile(Base):
 
     __tablename__ = "profiles"

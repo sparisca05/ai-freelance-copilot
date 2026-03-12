@@ -54,7 +54,6 @@ function App() {
       setSession(currentSession)
       setError('')
       setMessage('')
-      setActiveView('dashboard')
     })
 
     return () => {
