@@ -127,20 +127,11 @@ function Dashboard({ email, error, onSignOut, onOpenProfile }: DashboardProps) {
 	}
 
 	return (
-		<main style={{ minHeight: '100vh', padding: '2rem 2.5rem', background: 'transparent' }}>
+		<main className="dashboard-main">
 			<div style={{ maxWidth: '1200px', margin: '0 auto', display: 'grid', gap: '1.5rem' }}>
 
 				{/* Header */}
-				<header style={{
-					display: 'flex',
-					justifyContent: 'space-between',
-					alignItems: 'center',
-					background: '#fff',
-					borderRadius: '14px',
-					border: '1px solid #d6d6d6',
-					padding: '1.25rem 2rem',
-					boxShadow: '0 4px 16px -8px rgba(0,0,0,0.1)',
-				}}>
+				<header className="dashboard-header">
 					<div>
 						<h1 style={{ margin: 0, fontSize: '1.6rem' }}>Proposal Generator</h1>
 						<p style={{ margin: '0.25rem 0 0', color: '#666', fontSize: '0.9rem' }}>
@@ -190,7 +181,7 @@ function Dashboard({ email, error, onSignOut, onOpenProfile }: DashboardProps) {
 				)}
 
 				{/* Main Content: Form + Results */}
-				<div style={{ display: 'grid', gridTemplateColumns: generatedProposal ? '400px 1fr' : '1fr', gap: '1.5rem' }}>
+				<div className={`dashboard-content${generatedProposal ? '' : ' single-col'}`}>
 
 					{/* Input Form */}
 					<section style={{
@@ -199,6 +190,7 @@ function Dashboard({ email, error, onSignOut, onOpenProfile }: DashboardProps) {
 						border: '1px solid #d6d6d6',
 						padding: '2rem',
 						boxShadow: '0 4px 16px -8px rgba(0,0,0,0.1)',
+						minWidth: 0,
 					}}>
 						<h2 style={{ margin: '0 0 0.25rem 0', fontSize: '1.25rem', textAlign: 'left' }}>New Proposal</h2>
 						<p style={{ margin: '0 0 1.25rem 0', color: '#888', fontSize: '0.85rem', textAlign: 'left' }}>
@@ -276,8 +268,8 @@ function Dashboard({ email, error, onSignOut, onOpenProfile }: DashboardProps) {
 							border: '1px solid #d6d6d6',
 							padding: '2rem',
 							boxShadow: '0 4px 16px -8px rgba(0,0,0,0.1)',
-							overflow: 'auto',
-							maxWidth: '100%',
+							overflow: 'hidden',
+							minWidth: 0,
 						}}>
 							{/* Title */}
 							<h2 style={{ margin: '0 0 1.25rem 0', fontSize: '1.35rem', textAlign: 'left' }}>
@@ -409,6 +401,7 @@ function Dashboard({ email, error, onSignOut, onOpenProfile }: DashboardProps) {
 									overflow: 'auto',
 									whiteSpace: 'pre-wrap',
 									wordWrap: 'break-word',
+									overflowWrap: 'anywhere',
 									fontSize: '0.9rem',
 									lineHeight: '1.7',
 									textAlign: 'left',
@@ -493,12 +486,9 @@ function Dashboard({ email, error, onSignOut, onOpenProfile }: DashboardProps) {
 											e.currentTarget.style.boxShadow = 'none'
 										}}
 									>
-										<div style={{ flex: 1, minWidth: 0 }}>
-											<p style={{ margin: '0 0 0.25rem 0', fontWeight: 600, fontSize: '0.95rem', textAlign: 'left' }}>
+										<div style={{ minWidth: 0, overflow: 'hidden' }}>
+											<p style={{ margin: '0 0 0.25rem 0', fontWeight: 600, fontSize: '0.95rem', textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
 												{prop.title || 'Untitled Proposal'}
-											</p>
-											<p style={{ margin: 0, fontSize: '0.85rem', color: '#777', textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-												{prop.proposal_text.length > 100 ? prop.proposal_text.substring(0, 100) + '...' : prop.proposal_text}
 											</p>
 										</div>
 										<span style={{

@@ -77,8 +77,8 @@ function Profile({ email, profile, onSaveProfile, onGoToDashboard, onSignOut }: 
 
   return (
     <main className="auth-page" style={{ minHeight: '100vh', padding: '2rem 1rem' }}>
-      <section className="card" style={{ maxWidth: '900px', width: '100%', padding: '1.5rem' }}>
-        <header style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', marginBottom: '1rem' }}>
+      <section className="card profile-card">
+        <header className="profile-header">
           <div style={{ textAlign: 'left' }}>
             <h1 style={{ margin: 0 }}>Profile</h1>
             <p className="subtle" style={{ marginBottom: 0 }}>
@@ -116,7 +116,7 @@ function Profile({ email, profile, onSaveProfile, onGoToDashboard, onSignOut }: 
         <form onSubmit={handleSubmit} className="auth-form" style={{ gap: '1rem' }}>
           <section style={{ display: 'grid', gap: '0.75rem' }}>
             <h2 style={{ margin: 0, textAlign: 'left', fontSize: '1.2rem' }}>Personal Information</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '0.75rem' }}>
+            <div className='profile-form' style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '0.75rem' }}>
               <div>
                 <label htmlFor="full_name">Full Name</label>
                 <input
@@ -126,6 +126,9 @@ function Profile({ email, profile, onSaveProfile, onGoToDashboard, onSignOut }: 
                   onChange={(event) => updateField('full_name', event.target.value)}
                   disabled={!isEditing}
                   placeholder="Your full name"
+                  style={{
+                    cursor: isEditing ? 'text' : 'not-allowed',
+                  }}
                 />
               </div>
             </div>
@@ -133,7 +136,7 @@ function Profile({ email, profile, onSaveProfile, onGoToDashboard, onSignOut }: 
 
           <section style={{ display: 'grid', gap: '0.75rem' }}>
             <h2 style={{ margin: 0, textAlign: 'left', fontSize: '1.2rem' }}>Professional Information</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '0.75rem' }}>
+            <div className='profile-form' style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '0.75rem' }}>
               <div>
                 <label htmlFor="headline">Headline</label>
                 <input
@@ -143,6 +146,9 @@ function Profile({ email, profile, onSaveProfile, onGoToDashboard, onSignOut }: 
                   onChange={(event) => updateField('headline', event.target.value)}
                   disabled={!isEditing}
                   placeholder="Senior Full-Stack Developer"
+                  style={{
+                    cursor: isEditing ? 'text' : 'not-allowed',
+                  }}
                 />
               </div>
               <div>
@@ -154,6 +160,9 @@ function Profile({ email, profile, onSaveProfile, onGoToDashboard, onSignOut }: 
                   onChange={(event) => updateField('primary_role', event.target.value)}
                   disabled={!isEditing}
                   placeholder="Frontend Engineer"
+                  style={{
+                    cursor: isEditing ? 'text' : 'not-allowed',
+                  }}
                 />
               </div>
               <div>
@@ -165,6 +174,9 @@ function Profile({ email, profile, onSaveProfile, onGoToDashboard, onSignOut }: 
                   onChange={(event) => updateField('years_experience', event.target.value)}
                   disabled={!isEditing}
                   placeholder="5"
+                  style={{
+                    cursor: isEditing ? 'text' : 'not-allowed',
+                  }}
                 />
               </div>
               <div style={{ gridColumn: '1 / -1' }}>
@@ -185,6 +197,7 @@ function Profile({ email, profile, onSaveProfile, onGoToDashboard, onSignOut }: 
                       padding: '0.75rem',
                       fontSize: '1rem',
                       fontFamily: 'inherit',
+                      cursor: isEditing ? 'text' : 'not-allowed',
                     }}
                   />
                   <button
@@ -260,6 +273,7 @@ function Profile({ email, profile, onSaveProfile, onGoToDashboard, onSignOut }: 
                   fontFamily: 'inherit',
                   resize: 'vertical',
                   width: '100%',
+                  cursor: isEditing ? 'text' : 'not-allowed',
                 }}
               />
             </div>
