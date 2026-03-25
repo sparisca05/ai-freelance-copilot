@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { fetchWithAuth } from '../api'
+import { API_BASE_URL, fetchWithAuth } from '../api'
 
 type DashboardProps = {
 	email: string | null | undefined
@@ -21,6 +21,29 @@ type GeneratedProposal = {
 	estimated_budget_range: string
 }
 
+const SAMPLE_JOB_TITLE = 'Full-Stack Developer for AI-Powered Marketplace MVP'
+const SAMPLE_JOB_DESCRIPTION = `We are a startup building an AI-powered services marketplace and we are looking for a senior full-stack developer to help us ship our MVP in 8-10 weeks.
+
+Scope:
+- Build a React + TypeScript frontend for customer onboarding, service listing, and checkout.
+- Implement a FastAPI backend with PostgreSQL for user accounts, listings, and orders.
+- Integrate Stripe for subscription billing and payment webhooks.
+- Add basic analytics, role-based access, and admin dashboard metrics.
+- Deploy on cloud infrastructure with CI/CD and staging environment.
+
+Must-have skills:
+- React, TypeScript, Python, FastAPI, PostgreSQL
+- API design, authentication, and production-ready deployment
+
+Nice-to-have:
+- Experience with OpenAI APIs and Supabase Auth
+- Prior startup MVP experience
+
+Please include:
+- Similar projects you have built
+- Estimated timeline with milestones
+- Your suggested technical approach and key risks`
+
 function Dashboard({ email, error, onSignOut, onOpenProfile }: DashboardProps) {
 	const [jobTitle, setJobTitle] = useState('')
 	const [jobDescription, setJobDescription] = useState('')
@@ -33,6 +56,7 @@ function Dashboard({ email, error, onSignOut, onOpenProfile }: DashboardProps) {
 	const [showJobDetails, setShowJobDetails] = useState(false)
 	const [showHistory, setShowHistory] = useState(false)
 	const [copied, setCopied] = useState(false)
+	const [sampleNotice, setSampleNotice] = useState('')
 
 	useEffect(() => {
 		const loadHistory = async () => {
@@ -116,6 +140,13 @@ function Dashboard({ email, error, onSignOut, onOpenProfile }: DashboardProps) {
 		}
 	}
 
+	const handleUseSampleValues = () => {
+		setJobTitle(SAMPLE_JOB_TITLE)
+		setJobDescription(SAMPLE_JOB_DESCRIPTION)
+		setFetchError('')
+		setSampleNotice("Sample values loaded. For a successful match score, please complete your data in the Profile tab first.")
+	}
+
 	const handleCopy = async () => {
 		if (!generatedProposal) return
 		await navigator.clipboard.writeText(generatedProposal.proposal_text)
@@ -130,6 +161,10 @@ function Dashboard({ email, error, onSignOut, onOpenProfile }: DashboardProps) {
 		} catch (err) {
 			console.error('Failed to delete proposal:', err instanceof Error ? err.message : err)
 		}
+	}
+
+	const handleVerifyServerStatus = () => {
+		window.open(API_BASE_URL, '_blank', 'noopener,noreferrer')
 	}
 
 	const getDifficultyColor = (level: string) => {
@@ -159,6 +194,21 @@ function Dashboard({ email, error, onSignOut, onOpenProfile }: DashboardProps) {
 						</p>
 					</div>
 					<div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
+						<button
+							type="button"
+							onClick={handleVerifyServerStatus}
+							style={{
+								padding: '0.5rem 1.15rem',
+								fontSize: '0.9rem',
+								border: '1px solid #d6d6d6',
+								borderRadius: '8px',
+								backgroundColor: '#fff',
+								cursor: 'pointer',
+								fontWeight: 500,
+							}}
+						>
+							Verify server status
+						</button>
 						<button
 							type="button"
 							onClick={onOpenProfile}
@@ -200,6 +250,20 @@ function Dashboard({ email, error, onSignOut, onOpenProfile }: DashboardProps) {
 					</div>
 				)}
 
+				{sampleNotice && (
+					<div style={{
+						background: '#eff6ff',
+						border: '1px solid #93c5fd',
+						borderRadius: '10px',
+						padding: '0.85rem 1.25rem',
+						color: '#1e3a8a',
+						fontSize: '0.9rem',
+						fontWeight: 500,
+					}}>
+						{sampleNotice}
+					</div>
+				)}
+
 				{/* Main Content: Form + Results */}
 				<div className={`dashboard-content${generatedProposal ? '' : ' single-col'}`}>
 
@@ -216,6 +280,22 @@ function Dashboard({ email, error, onSignOut, onOpenProfile }: DashboardProps) {
 						<p style={{ margin: '0 0 1.25rem 0', color: '#888', fontSize: '0.85rem', textAlign: 'left' }}>
 							Fill in the job details and let AI craft your proposal
 						</p>
+						<button
+							type="button"
+							onClick={handleUseSampleValues}
+							style={{
+								marginBottom: '1rem',
+								padding: '0.5rem 1rem',
+								fontSize: '0.85rem',
+								fontWeight: 600,
+								borderRadius: '8px',
+								border: '1px solid #d6d6d6',
+								backgroundColor: '#fff',
+								cursor: 'pointer',
+							}}
+						>
+							Use sample values
+						</button>
 						<form onSubmit={handleGenerateProposal} style={{ display: 'grid', gap: '1rem' }}>
 							<div>
 								<label htmlFor="jobTitle" style={{ display: 'block', fontWeight: 600, marginBottom: '0.4rem', textAlign: 'left', fontSize: '0.9rem' }}>
